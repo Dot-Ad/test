@@ -1,11 +1,8 @@
-<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
-"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns="http://www.w3.org/2000/svg" onload="alert(document.domain)">
-  <script type="application/ecmascript">
-    alert('XSS from inline SVG');
-  </script>
+<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1">
+  <image href="https://d2ddf3bd-e72c-464e-8ef2-550be0d6c0d9.webhook.site/?from=img" width="1" height="1"/>
 </svg>
+
+
 
 
 
